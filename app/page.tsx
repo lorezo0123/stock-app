@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Package, Store, Warehouse, Search } from "lucide-react";
+import BarcodeScanner from "@/components/ui/BarcodeScanner";
 
 const starterItems = [
   { id: 1, name: "7114 DUNHILL LIGHTS (BIRU) 20PCS" },
@@ -119,6 +120,8 @@ export default function ShopStockCountApp() {
   const [quantity, setQuantity] = useState("");
   const [search, setSearch] = useState("");
   const [itemSearch, setItemSearch] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
+  const [lastScannedCode, setLastScannedCode] = useState("");
   const [entries, setEntries] = useState<
     { id: number; itemId: number; itemName: string; location: string; quantity: number }[]
   >([]);
@@ -312,6 +315,26 @@ export default function ShopStockCountApp() {
                   placeholder="Search and choose item"
                 />
 
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setShowScanner(true)}
+                >
+                  Scan Barcode
+                </Button>
+
+                {showScanner && (
+                  <BarcodeScanner
+                    onDetected={(code) => {
+                      setLastScannedCode(code);
+                      setShowScanner(false);
+                      alert(`Scanned barcode: ${code}`);
+                    }}
+                    onClose={() => setShowScanner(false)}
+                  />
+                )}
+
                 <div className="max-h-48 overflow-y-auto rounded-md border bg-white">
                   {filteredItems.length > 0 ? (
                     filteredItems.map((item) => (
@@ -334,6 +357,12 @@ export default function ShopStockCountApp() {
                 <p className="text-xs text-slate-500">
                   Selected: {selectedItem ? selectedItem.name : "None"}
                 </p>
+
+                {lastScannedCode ? (
+                  <p className="text-xs text-slate-500">
+                    Last scanned barcode: {lastScannedCode}
+                  </p>
+                ) : null}
               </div>
 
               <div className="space-y-2">
