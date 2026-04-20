@@ -18,6 +18,37 @@ export default function BarcodeScanner({
   useEffect(() => {
     let cancelled = false;
 
+    const handleDetected = async (decodedText: string, scanner: any) => {
+      if (cancelled) return;
+
+      const cleanCode = decodedText.trim();
+
+      try {
+        await scanner.stop();
+      } catch {
+        // ignore
+      }
+
+      // Block QR links / website URLs
+      if (
+        cleanCode.startsWith("http://") ||
+        cleanCode.startsWith("https://") ||
+        cleanCode.startsWith("www.")
+      ) {
+        setError("This is a website QR code, not a product barcode.");
+        return;
+      }
+
+      // Optional: only allow letters, numbers, dash, slash, dot
+      // This blocks strange text payloads
+      if (!/^[A-Za-z0-9\-./]+$/.test(cleanCode)) {
+        setError("Invalid barcode format.");
+        return;
+      }
+
+      onDetected(cleanCode);
+    };
+
     async function startScanner() {
       try {
         if (typeof window === "undefined") return;
@@ -49,15 +80,7 @@ export default function BarcodeScanner({
             aspectRatio: 1.777778,
           },
           async (decodedText: string) => {
-            if (cancelled) return;
-
-            try {
-              await scanner.stop();
-            } catch {
-              // ignore
-            }
-
-            onDetected(decodedText);
+            await handleDetected(decodedText, scanner);
           },
           () => {
             // ignore scan misses
@@ -94,15 +117,7 @@ export default function BarcodeScanner({
               aspectRatio: 1.777778,
             },
             async (decodedText: string) => {
-              if (cancelled) return;
-
-              try {
-                await scanner.stop();
-              } catch {
-                // ignore
-              }
-
-              onDetected(decodedText);
+              await handleDetected(decodedText, scanner);
             },
             () => {
               // ignore scan misses
