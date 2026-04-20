@@ -108,6 +108,9 @@ const locations = [
   { value: "storeroom", label: "Store Room" },
 ];
 
+const normalizeText = (text: string) =>
+  text.toLowerCase().replace(/\s+/g, " ").trim();
+
 export default function ShopStockCountApp() {
   const [items, setItems] = useState(starterItems);
   const [newItem, setNewItem] = useState("");
@@ -123,7 +126,7 @@ export default function ShopStockCountApp() {
   const selectedItem = items.find((item) => String(item.id) === selectedItemId);
 
   const filteredItems = items.filter((item) =>
-    item.name.toLowerCase().includes(itemSearch.toLowerCase())
+    normalizeText(item.name).includes(normalizeText(itemSearch))
   );
 
   const addItem = () => {
@@ -169,6 +172,8 @@ export default function ShopStockCountApp() {
   };
 
   const summary = useMemo(() => {
+    const normalizedSearch = normalizeText(search);
+
     return items
       .map((item) => {
         const outside = entries
@@ -188,7 +193,15 @@ export default function ShopStockCountApp() {
           total,
         };
       })
-      .filter((item) => item.name.toLowerCase().includes(search.toLowerCase()));
+      .filter((item) => {
+        if (!normalizedSearch) return true;
+        return normalizeText(item.name).includes(normalizedSearch);
+      })
+      .sort((a, b) => {
+        if (a.total > 0 && b.total === 0) return -1;
+        if (a.total === 0 && b.total > 0) return 1;
+        return b.total - a.total;
+      });
   }, [items, entries, search]);
 
   const grandTotals = useMemo(() => {
@@ -349,7 +362,7 @@ export default function ShopStockCountApp() {
                     className="pl-9"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search item"
+                    placeholder="Search item summary"
                   />
                 </div>
               </CardHeader>
