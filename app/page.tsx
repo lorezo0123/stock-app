@@ -123,6 +123,13 @@ export default function ShopStockCountApp() {
     { id: number; itemId: number; itemName: string; location: string; quantity: number }[]
   >([]);
 
+  const [editingCell, setEditingCell] = useState<{
+    itemId: number;
+    location: "outside" | "storeroom";
+  } | null>(null);
+
+  const [editingValue, setEditingValue] = useState("");
+
   const selectedItem = items.find((item) => String(item.id) === selectedItemId);
 
   const filteredItems = items.filter((item) =>
@@ -169,6 +176,54 @@ export default function ShopStockCountApp() {
 
   const removeEntry = (id: number) => {
     setEntries((prev) => prev.filter((entry) => entry.id !== id));
+  };
+
+  const startEditing = (
+    itemId: number,
+    location: "outside" | "storeroom",
+    currentValue: number
+  ) => {
+    setEditingCell({ itemId, location });
+    setEditingValue(String(currentValue));
+  };
+
+  const saveEditedValue = (
+    itemId: number,
+    location: "outside" | "storeroom",
+    value?: string
+  ) => {
+    const finalValue = value ?? editingValue;
+    const qty = Number(finalValue);
+
+    if (finalValue === "" || qty < 0) return;
+
+    const found = items.find((item) => item.id === itemId);
+    if (!found) return;
+
+    setEntries((prev) => {
+      const filtered = prev.filter(
+        (entry) => !(entry.itemId === itemId && entry.location === location)
+      );
+
+      return [
+        {
+          id: Date.now(),
+          itemId: found.id,
+          itemName: found.name,
+          location,
+          quantity: qty,
+        },
+        ...filtered,
+      ];
+    });
+
+    setEditingCell(null);
+    setEditingValue("");
+  };
+
+  const cancelEditing = () => {
+    setEditingCell(null);
+    setEditingValue("");
   };
 
   const summary = useMemo(() => {
@@ -373,8 +428,8 @@ export default function ShopStockCountApp() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Item</TableHead>
-                        <TableHead>Outside Selling</TableHead>
-                        <TableHead>Store Room</TableHead>
+                        <TableHead>Outside Selling (click to edit)</TableHead>
+                        <TableHead>Store Room (click to edit)</TableHead>
                         <TableHead>Total</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -382,8 +437,93 @@ export default function ShopStockCountApp() {
                       {summary.map((item) => (
                         <TableRow key={item.id}>
                           <TableCell className="font-medium">{item.name}</TableCell>
-                          <TableCell>{item.outside}</TableCell>
-                          <TableCell>{item.storeroom}</TableCell>
+
+                          <TableCell>
+                            {editingCell?.itemId === item.id &&
+                            editingCell?.location === "outside" ? (
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  value={editingValue}
+                                  onChange={(e) => setEditingValue(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") saveEditedValue(item.id, "outside");
+                                    if (e.key === "Escape") cancelEditing();
+                                  }}
+                                  autoFocus
+                                  className="h-8 w-20"
+                                />
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => saveEditedValue(item.id, "outside")}
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={cancelEditing}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => startEditing(item.id, "outside", item.outside)}
+                                className="rounded px-2 py-1 hover:bg-slate-100"
+                              >
+                                {item.outside}
+                              </button>
+                            )}
+                          </TableCell>
+
+                          <TableCell>
+                            {editingCell?.itemId === item.id &&
+                            editingCell?.location === "storeroom" ? (
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  value={editingValue}
+                                  onChange={(e) => setEditingValue(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") saveEditedValue(item.id, "storeroom");
+                                    if (e.key === "Escape") cancelEditing();
+                                  }}
+                                  autoFocus
+                                  className="h-8 w-20"
+                                />
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => saveEditedValue(item.id, "storeroom")}
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={cancelEditing}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => startEditing(item.id, "storeroom", item.storeroom)}
+                                className="rounded px-2 py-1 hover:bg-slate-100"
+                              >
+                                {item.storeroom}
+                              </button>
+                            )}
+                          </TableCell>
+
                           <TableCell>
                             <Badge variant="secondary" className="rounded-xl px-3 py-1">
                               {item.total}
