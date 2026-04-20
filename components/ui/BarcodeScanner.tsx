@@ -3,13 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 
+type BarcodeScannerProps = {
+  onDetected: (code: string) => void;
+  onClose: () => void;
+};
+
 export default function BarcodeScanner({
   onDetected,
   onClose,
-}: {
-  onDetected: (code: string) => void;
-  onClose: () => void;
-}) {
+}: BarcodeScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [error, setError] = useState("");
 
@@ -20,29 +22,42 @@ export default function BarcodeScanner({
     scanner
       .start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 120 },
+        },
         (decodedText) => {
           onDetected(decodedText);
-        }
+        },
+        () => {}
       )
-      .catch(() => {
+      .catch((err) => {
+        console.error(err);
         setError("Camera error. Please allow permission.");
       });
 
     return () => {
-      scanner.stop().catch(() => {});
+      if (scannerRef.current?.isScanning) {
+        scannerRef.current.stop().catch(() => {});
+      }
     };
-  }, []);
+  }, [onDetected]);
 
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between">
+    <div className="space-y-2 rounded-md border bg-white p-3">
+      <div className="flex items-center justify-between">
         <p className="font-semibold">Scan Barcode</p>
-        <button onClick={onClose}>Close</button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded border px-3 py-1 text-sm hover:bg-slate-100"
+        >
+          Close
+        </button>
       </div>
 
       {error ? (
-        <p className="text-red-500 text-sm">{error}</p>
+        <p className="text-sm text-red-500">{error}</p>
       ) : (
         <div id="reader" className="w-full" />
       )}
