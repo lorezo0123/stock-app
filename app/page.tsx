@@ -24,12 +24,83 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Package, Store, Warehouse, Search } from "lucide-react";
 
 const starterItems = [
-  { id: 1, name: "Coca-Cola 1.5L" },
-  { id: 2, name: "Pepsi 1.5L" },
-  { id: 3, name: "Mineral Water 600ml" },
-  { id: 4, name: "Instant Noodles Curry" },
-  { id: 5, name: "Gardenia Bread" },
-  { id: 6, name: "Milo 1kg" },
+  { id: 1, name: "7114 DUNHILL LIGHTS (BIRU) 20PCS" },
+  { id: 2, name: "7113 DUNHILL MENTHOL (HIJAU) 20PCS" },
+  { id: 3, name: "7228 DUNHILL MIX 20PCS" },
+  { id: 4, name: "7422 DUNHILL SWITCH (GOLD) 20PCS" },
+  { id: 5, name: "7481 ROTHMANS CARBON CHARCOAL FILTER 20PCS" },
+  { id: 6, name: "7492 ROTHMANS PURPLE 20PCS" },
+  { id: 7, name: "7089 MARLBORO FILTER SOFT BOX (R) 20PCS" },
+  { id: 8, name: "7088 MARLBORO FILTER BOX (R) 20PCS" },
+  { id: 9, name: "7095 MARLBORO FILTER BOX (GOLD) 20PCS" },
+  { id: 10, name: "7096 MARLBORO MENTHOL BLACK 20PCS" },
+  { id: 11, name: "7388 MARLBORO ICE BLAST BOX (B) 20PCS" },
+  { id: 12, name: "7168 MARLBORO DOUBLE BURST 20PCS" },
+  { id: 13, name: "7117 BENSON & HEDGES SPECIAL FILTER 20PCS" },
+  { id: 14, name: "7383 PETER STUYVESANT FILTER FULL (R) 20PCS" },
+  { id: 15, name: "7384 PETER STUYVESANT FILTER LIGHT (B) 20PCS" },
+  { id: 16, name: "7001 KYO ORIGINAL FILTER (RED) 20PCS" },
+  { id: 17, name: "7043 KYO ORIGINAL 20PCS" },
+  { id: 18, name: "7044 KYO SILVER 20PCS" },
+  { id: 19, name: "7478 CHESTERFIELD CHARCOAL 20PCS" },
+  { id: 20, name: "7189 CHESTERFIELD RED 20PCS" },
+  { id: 21, name: "7190 CHESTERFIELD BLUE 20PCS" },
+  { id: 22, name: "7396 CHESTERFIELD MENTHOL 20PCS" },
+  { id: 23, name: "10384 CHESTERFIELD PURPLE 20PCS" },
+  { id: 24, name: "7129 SAMPOERNA A MENTHOL BOX (G) 20PCS" },
+  { id: 25, name: "7127 SAMPOERNA A BOX (R) 20PCS" },
+  { id: 26, name: "7362 TEREA AMBER 20PCS" },
+  { id: 27, name: "7363 TEREA BLUE 20PCS" },
+  { id: 28, name: "7364 TEREA BLACK GREEN 20PCS" },
+  { id: 29, name: "7550 TEREA ZING WAVE 20PCS" },
+  { id: 30, name: "7551 TEREA SIENNA 20PCS" },
+  { id: 31, name: "7552 TEREA PURPLE WAVE 20PCS" },
+  { id: 32, name: "7123 MEVIUS SALEM MENTHOL BOX (G) 20PCS" },
+  { id: 33, name: "7078 MEVIUS MENTHOL DUO (GREEN) BOX 20PCS" },
+  { id: 34, name: "7267 MEVIUS MENTHOL WHITE 20PCS" },
+  { id: 35, name: "7504 MEVIUS KIWAMI 20PCS" },
+  { id: 36, name: "7409 WINSTON EXCEL CAPSULE DUO BLUE 20PCS" },
+  { id: 37, name: "7125 WINSTON (RED) 20PCS" },
+  { id: 38, name: "7215 WINSTON (BLUE) 20PCS" },
+  { id: 39, name: "7400 LD ZOOM 20PCS" },
+  { id: 40, name: "7438 LD PURPLE 20PCS" },
+  { id: 41, name: "7292 LD RED ROW 20PCS" },
+  { id: 42, name: "7347 LD 100S RED 20PCS" },
+  { id: 43, name: "7269 MEVIUS ORIGINAL BLUE 20PCS" },
+  { id: 44, name: "7271 MEVIUS SKY BLUE BOX (B) 20PCS" },
+  { id: 45, name: "7367 LD BLUE 20PCS" },
+  { id: 46, name: "7369 LD MENTHOL 20PCS" },
+  { id: 47, name: "7333 DUNHILL CLASSIC PACK (M) 20PCS" },
+  { id: 48, name: "7110 DUNHILL KING SIZE FILTER (M) 20PCS" },
+  { id: 49, name: "7393 ROTHMANS RED 20PCS" },
+  { id: 50, name: "7394 ROTHMANS BLUE 20PCS" },
+  { id: 51, name: "7344 LUCKIES RED 20PCS" },
+  { id: 52, name: "7345 LUCKIES BLUE 20PCS" },
+  { id: 53, name: "7349 LD RED 20PCS" },
+
+  { id: 54, name: "501 MALTA CAN 320ML" },
+  { id: 55, name: "484 ANGLIA SHANDY CAN 320ML" },
+  { id: 56, name: "481 GUINNESS CAN 320ML" },
+  { id: 57, name: "483 CARLSBERG CAN 320ML" },
+  { id: 58, name: "485 CARLSBERG SPECIAL BREW CAN 320ML" },
+  { id: 59, name: "2101 CARLSBERG SMOOTH DRAUGHT CAN 320ML" },
+  { id: 60, name: "489 TIGER BEER CAN 320ML" },
+  { id: 61, name: "2494 HEINEKEN BEER CAN 320ML" },
+  { id: 62, name: "498 ROYAL STOUT CAN 320ML (ICE)" },
+  { id: 63, name: "5175 SKOL BEER TIN 320ML" },
+  { id: 64, name: "2103 KRONENBOURG 1664 BLANC CAN 320ML" },
+  { id: 65, name: "2718 ASAHI BEER CAN 320ML" },
+  { id: 66, name: "0960 ANCHOR SMOOTH CAN 320ML" },
+  { id: 67, name: "3369 TIGER CRYSTAL BEER CAN 320ML" },
+  { id: 68, name: "3513 CONNORS STOUT PORTER 320ML" },
+  { id: 69, name: "2249 CARLSBERG SMOOTH DRAUGHT 680ML BOTTLE" },
+  { id: 70, name: "557 GUINNESS BOTTLE 640ML" },
+  { id: 71, name: "658 CARLSBERG BOTTLE 640ML" },
+  { id: 72, name: "559 TIGER BEER BOTTLE 660ML" },
+  { id: 73, name: "5054 HEINEKEN BEER BOTTLE 640ML" },
+  { id: 74, name: "7017 SOMERSBY APPLE CIDER 330ML" },
+
+  { id: 75, name: "SAPPORO" }
 ];
 
 const locations = [
@@ -40,28 +111,42 @@ const locations = [
 export default function ShopStockCountApp() {
   const [items, setItems] = useState(starterItems);
   const [newItem, setNewItem] = useState("");
-  const [selectedItemId, setSelectedItemId] = useState(String(starterItems[0].id));
+  const [selectedItemId, setSelectedItemId] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("outside");
   const [quantity, setQuantity] = useState("");
   const [search, setSearch] = useState("");
-  const [entries, setEntries] = useState([
-    { id: 101, itemId: 1, itemName: "Coca-Cola 1.5L", location: "outside", quantity: 12 },
-    { id: 102, itemId: 1, itemName: "Coca-Cola 1.5L", location: "storeroom", quantity: 30 },
-    { id: 103, itemId: 2, itemName: "Pepsi 1.5L", location: "outside", quantity: 8 },
-  ]);
+  const [itemSearch, setItemSearch] = useState("");
+  const [entries, setEntries] = useState<
+    { id: number; itemId: number; itemName: string; location: string; quantity: number }[]
+  >([]);
+
+  const selectedItem = items.find((item) => String(item.id) === selectedItemId);
+
+  const filteredItems = items.filter((item) =>
+    item.name.toLowerCase().includes(itemSearch.toLowerCase())
+  );
 
   const addItem = () => {
     const trimmed = newItem.trim();
     if (!trimmed) return;
+
     const next = { id: Date.now(), name: trimmed };
     setItems((prev) => [...prev, next]);
     setNewItem("");
     setSelectedItemId(String(next.id));
+    setItemSearch(next.name);
+  };
+
+  const chooseItem = (id: number, name: string) => {
+    setSelectedItemId(String(id));
+    setItemSearch(name);
   };
 
   const addEntry = () => {
     const qty = Number(quantity);
-    if (!selectedItemId || !qty || qty < 0) return;
+
+    if (!selectedItemId || quantity === "" || qty < 0) return;
+
     const found = items.find((item) => String(item.id) === selectedItemId);
     if (!found) return;
 
@@ -75,6 +160,7 @@ export default function ShopStockCountApp() {
       },
       ...prev,
     ]);
+
     setQuantity("");
   };
 
@@ -108,6 +194,7 @@ export default function ShopStockCountApp() {
   const grandTotals = useMemo(() => {
     const outside = summary.reduce((sum, item) => sum + item.outside, 0);
     const storeroom = summary.reduce((sum, item) => sum + item.storeroom, 0);
+
     return {
       outside,
       storeroom,
@@ -132,6 +219,7 @@ export default function ShopStockCountApp() {
                 <Package className="h-5 w-5" /> Add Count
               </CardTitle>
             </CardHeader>
+
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Add New Item</Label>
@@ -139,7 +227,7 @@ export default function ShopStockCountApp() {
                   <Input
                     value={newItem}
                     onChange={(e) => setNewItem(e.target.value)}
-                    placeholder="Example: Sprite 1.5L"
+                    placeholder="Example: Item Name"
                   />
                   <Button onClick={addItem}>Add</Button>
                 </div>
@@ -147,18 +235,37 @@ export default function ShopStockCountApp() {
 
               <div className="space-y-2">
                 <Label>Choose Item</Label>
-                <Select value={selectedItemId} onValueChange={setSelectedItemId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select item" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {items.map((item) => (
-                      <SelectItem key={item.id} value={String(item.id)}>
+                <Input
+                  value={itemSearch}
+                  onChange={(e) => {
+                    setItemSearch(e.target.value);
+                    setSelectedItemId("");
+                  }}
+                  placeholder="Search and choose item"
+                />
+
+                <div className="max-h-48 overflow-y-auto rounded-md border bg-white">
+                  {filteredItems.length > 0 ? (
+                    filteredItems.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => chooseItem(item.id, item.name)}
+                        className={`w-full border-b px-3 py-2 text-left text-sm last:border-b-0 hover:bg-slate-100 ${
+                          String(item.id) === selectedItemId ? "bg-slate-100 font-medium" : ""
+                        }`}
+                      >
                         {item.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-slate-500">No item found</div>
+                  )}
+                </div>
+
+                <p className="text-xs text-slate-500">
+                  Selected: {selectedItem ? selectedItem.name : "None"}
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -246,6 +353,7 @@ export default function ShopStockCountApp() {
                   />
                 </div>
               </CardHeader>
+
               <CardContent>
                 <div className="overflow-x-auto">
                   <Table>
@@ -280,27 +388,39 @@ export default function ShopStockCountApp() {
               <CardHeader>
                 <CardTitle className="text-xl">Recent Count Entries</CardTitle>
               </CardHeader>
+
               <CardContent>
                 <div className="space-y-3">
-                  {entries.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="flex flex-col gap-3 rounded-2xl border bg-white p-4 md:flex-row md:items-center md:justify-between"
-                    >
-                      <div>
-                        <p className="font-semibold">{entry.itemName}</p>
-                        <p className="text-sm text-slate-500">
-                          {entry.location === "outside" ? "Outside Selling" : "Store Room"}
-                        </p>
+                  {entries.length === 0 ? (
+                    <p className="text-sm text-slate-500">No entries yet.</p>
+                  ) : (
+                    entries.map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="flex flex-col gap-3 rounded-2xl border bg-white p-4 md:flex-row md:items-center md:justify-between"
+                      >
+                        <div>
+                          <p className="font-semibold">{entry.itemName}</p>
+                          <p className="text-sm text-slate-500">
+                            {entry.location === "outside" ? "Outside Selling" : "Store Room"}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <Badge className="rounded-xl px-3 py-1 text-sm">
+                            Qty: {entry.quantity}
+                          </Badge>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => removeEntry(entry.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Badge className="rounded-xl px-3 py-1 text-sm">Qty: {entry.quantity}</Badge>
-                        <Button variant="outline" size="icon" onClick={() => removeEntry(entry.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
