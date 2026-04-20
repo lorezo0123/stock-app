@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
 
 type BarcodeScannerProps = {
   onDetected: (code: string) => void;
@@ -12,33 +11,66 @@ export default function BarcodeScanner({
   onDetected,
   onClose,
 }: BarcodeScannerProps) {
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerRef = useRef<any>(null);
+  const elementIdRef = useRef(`reader-${Math.random().toString(36).slice(2)}`);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const scanner = new Html5Qrcode("reader");
-    scannerRef.current = scanner;
+    let cancelled = false;
 
-    scanner
-      .start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 120 },
-        },
-        (decodedText) => {
-          onDetected(decodedText);
-        },
-        () => {}
-      )
-      .catch((err) => {
+    async function startScanner() {
+      try {
+        if (typeof window === "undefined") return;
+
+        const { Html5Qrcode } = await import("html5-qrcode");
+
+        if (cancelled) return;
+
+        const scanner = new Html5Qrcode(elementIdRef.current);
+        scannerRef.current = scanner;
+
+        await scanner.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 120 },
+          },
+          async (decodedText: string) => {
+            if (cancelled) return;
+
+            try {
+              await scanner.stop();
+            } catch {
+              // ignore stop errors
+            }
+
+            onDetected(decodedText);
+          },
+          () => {
+            // ignore scan errors while scanning
+          }
+        );
+      } catch (err) {
         console.error(err);
-        setError("Camera error. Please allow permission.");
-      });
+        if (!cancelled) {
+          setError("Camera error. Please allow permission.");
+        }
+      }
+    }
+
+    startScanner();
 
     return () => {
-      if (scannerRef.current?.isScanning) {
-        scannerRef.current.stop().catch(() => {});
+      cancelled = true;
+
+      const scanner = scannerRef.current;
+      if (scanner) {
+        scanner
+          .stop()
+          .catch(() => {})
+          .finally(() => {
+            scannerRef.current = null;
+          });
       }
     };
   }, [onDetected]);
@@ -59,7 +91,7 @@ export default function BarcodeScanner({
       {error ? (
         <p className="text-sm text-red-500">{error}</p>
       ) : (
-        <div id="reader" className="w-full" />
+        <div id={elementIdRef.current} className="w-full" />
       )}
     </div>
   );
