@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,85 +25,23 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Package, Store, Warehouse, Search } from "lucide-react";
 import BarcodeScanner from "@/components/ui/BarcodeScanner";
 
-const starterItems = [
-  { id: 1, name: "7114 DUNHILL LIGHTS (BIRU) 20PCS" },
-  { id: 2, name: "7113 DUNHILL MENTHOL (HIJAU) 20PCS" },
-  { id: 3, name: "7228 DUNHILL MIX 20PCS" },
-  { id: 4, name: "7422 DUNHILL SWITCH (GOLD) 20PCS" },
-  { id: 5, name: "7481 ROTHMANS CARBON CHARCOAL FILTER 20PCS" },
-  { id: 6, name: "7492 ROTHMANS PURPLE 20PCS" },
-  { id: 7, name: "7089 MARLBORO FILTER SOFT BOX (R) 20PCS" },
-  { id: 8, name: "7088 MARLBORO FILTER BOX (R) 20PCS" },
-  { id: 9, name: "7095 MARLBORO FILTER BOX (GOLD) 20PCS" },
-  { id: 10, name: "7096 MARLBORO MENTHOL BLACK 20PCS" },
-  { id: 11, name: "7388 MARLBORO ICE BLAST BOX (B) 20PCS" },
-  { id: 12, name: "7168 MARLBORO DOUBLE BURST 20PCS" },
-  { id: 13, name: "7117 BENSON & HEDGES SPECIAL FILTER 20PCS" },
-  { id: 14, name: "7383 PETER STUYVESANT FILTER FULL (R) 20PCS" },
-  { id: 15, name: "7384 PETER STUYVESANT FILTER LIGHT (B) 20PCS" },
-  { id: 16, name: "7001 KYO ORIGINAL FILTER (RED) 20PCS" },
-  { id: 17, name: "7043 KYO ORIGINAL 20PCS" },
-  { id: 18, name: "7044 KYO SILVER 20PCS" },
-  { id: 19, name: "7478 CHESTERFIELD CHARCOAL 20PCS" },
-  { id: 20, name: "7189 CHESTERFIELD RED 20PCS" },
-  { id: 21, name: "7190 CHESTERFIELD BLUE 20PCS" },
-  { id: 22, name: "7396 CHESTERFIELD MENTHOL 20PCS" },
-  { id: 23, name: "10384 CHESTERFIELD PURPLE 20PCS" },
-  { id: 24, name: "7129 SAMPOERNA A MENTHOL BOX (G) 20PCS" },
-  { id: 25, name: "7127 SAMPOERNA A BOX (R) 20PCS" },
-  { id: 26, name: "7362 TEREA AMBER 20PCS" },
-  { id: 27, name: "7363 TEREA BLUE 20PCS" },
-  { id: 28, name: "7364 TEREA BLACK GREEN 20PCS" },
-  { id: 29, name: "7550 TEREA ZING WAVE 20PCS" },
-  { id: 30, name: "7551 TEREA SIENNA 20PCS" },
-  { id: 31, name: "7552 TEREA PURPLE WAVE 20PCS" },
-  { id: 32, name: "7123 MEVIUS SALEM MENTHOL BOX (G) 20PCS" },
-  { id: 33, name: "7078 MEVIUS MENTHOL DUO (GREEN) BOX 20PCS" },
-  { id: 34, name: "7267 MEVIUS MENTHOL WHITE 20PCS" },
-  { id: 35, name: "7504 MEVIUS KIWAMI 20PCS" },
-  { id: 36, name: "7409 WINSTON EXCEL CAPSULE DUO BLUE 20PCS" },
-  { id: 37, name: "7125 WINSTON (RED) 20PCS" },
-  { id: 38, name: "7215 WINSTON (BLUE) 20PCS" },
-  { id: 39, name: "7400 LD ZOOM 20PCS" },
-  { id: 40, name: "7438 LD PURPLE 20PCS" },
-  { id: 41, name: "7292 LD RED ROW 20PCS" },
-  { id: 42, name: "7347 LD 100S RED 20PCS" },
-  { id: 43, name: "7269 MEVIUS ORIGINAL BLUE 20PCS" },
-  { id: 44, name: "7271 MEVIUS SKY BLUE BOX (B) 20PCS" },
-  { id: 45, name: "7367 LD BLUE 20PCS" },
-  { id: 46, name: "7369 LD MENTHOL 20PCS" },
-  { id: 47, name: "7333 DUNHILL CLASSIC PACK (M) 20PCS" },
-  { id: 48, name: "7110 DUNHILL KING SIZE FILTER (M) 20PCS" },
-  { id: 49, name: "7393 ROTHMANS RED 20PCS" },
-  { id: 50, name: "7394 ROTHMANS BLUE 20PCS" },
-  { id: 51, name: "7344 LUCKIES RED 20PCS" },
-  { id: 52, name: "7345 LUCKIES BLUE 20PCS" },
-  { id: 53, name: "7349 LD RED 20PCS" },
+type Item = {
+  id: number;
+  name: string;
+};
 
-  { id: 54, name: "501 MALTA CAN 320ML" },
-  { id: 55, name: "484 ANGLIA SHANDY CAN 320ML" },
-  { id: 56, name: "481 GUINNESS CAN 320ML" },
-  { id: 57, name: "483 CARLSBERG CAN 320ML" },
-  { id: 58, name: "485 CARLSBERG SPECIAL BREW CAN 320ML" },
-  { id: 59, name: "2101 CARLSBERG SMOOTH DRAUGHT CAN 320ML" },
-  { id: 60, name: "489 TIGER BEER CAN 320ML" },
-  { id: 61, name: "2494 HEINEKEN BEER CAN 320ML" },
-  { id: 62, name: "498 ROYAL STOUT CAN 320ML (ICE)" },
-  { id: 63, name: "5175 SKOL BEER TIN 320ML" },
-  { id: 64, name: "2103 KRONENBOURG 1664 BLANC CAN 320ML" },
-  { id: 65, name: "2718 ASAHI BEER CAN 320ML" },
-  { id: 66, name: "0960 ANCHOR SMOOTH CAN 320ML" },
-  { id: 67, name: "3369 TIGER CRYSTAL BEER CAN 320ML" },
-  { id: 68, name: "3513 CONNORS STOUT PORTER 320ML" },
-  { id: 69, name: "2249 CARLSBERG SMOOTH DRAUGHT 680ML BOTTLE" },
-  { id: 70, name: "557 GUINNESS BOTTLE 640ML" },
-  { id: 71, name: "658 CARLSBERG BOTTLE 640ML" },
-  { id: 72, name: "559 TIGER BEER BOTTLE 660ML" },
-  { id: 73, name: "5054 HEINEKEN BEER BOTTLE 640ML" },
-  { id: 74, name: "7017 SOMERSBY APPLE CIDER 330ML" },
+type Entry = {
+  id: number;
+  item_id: number;
+  location: "outside" | "storeroom";
+  quantity: number;
+  created_at?: string;
+};
 
-  { id: 75, name: "SAPPORO" }
-];
+type BarcodeMappingRow = {
+  barcode: string;
+  item_id: number;
+};
 
 const locations = [
   { value: "outside", label: "Outside Selling" },
@@ -113,10 +52,11 @@ const normalizeText = (text: string) =>
   text.toLowerCase().replace(/\s+/g, " ").trim();
 
 export default function ShopStockCountApp() {
-  const [items, setItems] = useState(starterItems);
+  const [items, setItems] = useState<Item[]>([]);
+  const [entries, setEntries] = useState<Entry[]>([]);
   const [newItem, setNewItem] = useState("");
   const [selectedItemId, setSelectedItemId] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState("outside");
+  const [selectedLocation, setSelectedLocation] = useState<"outside" | "storeroom">("outside");
   const [quantity, setQuantity] = useState("");
   const [search, setSearch] = useState("");
   const [itemSearch, setItemSearch] = useState("");
@@ -124,9 +64,8 @@ export default function ShopStockCountApp() {
   const [lastScannedCode, setLastScannedCode] = useState("");
   const [pendingBarcode, setPendingBarcode] = useState("");
   const [barcodeMap, setBarcodeMap] = useState<Record<string, number>>({});
-  const [entries, setEntries] = useState<
-    { id: number; itemId: number; itemName: string; location: string; quantity: number }[]
-  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [editingCell, setEditingCell] = useState<{
     itemId: number;
@@ -137,19 +76,84 @@ export default function ShopStockCountApp() {
 
   const selectedItem = items.find((item) => String(item.id) === selectedItemId);
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  async function loadData() {
+    setLoading(true);
+    setError("");
+
+    const { data: itemsData, error: itemsError } = await supabase
+      .from("items")
+      .select("id, name")
+      .order("name", { ascending: true });
+
+    const { data: entriesData, error: entriesError } = await supabase
+      .from("stock_entries")
+      .select("id, item_id, location, quantity, created_at")
+      .order("created_at", { ascending: false });
+
+    const { data: barcodeData, error: barcodeError } = await supabase
+      .from("barcode_mappings")
+      .select("barcode, item_id");
+
+    if (itemsError) {
+      setError(itemsError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (entriesError) {
+      setError(entriesError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (barcodeError) {
+      setError(barcodeError.message);
+      setLoading(false);
+      return;
+    }
+
+    setItems((itemsData ?? []) as Item[]);
+    setEntries((entriesData ?? []) as Entry[]);
+
+    const barcodeObject: Record<string, number> = {};
+    ((barcodeData ?? []) as BarcodeMappingRow[]).forEach((row) => {
+      barcodeObject[row.barcode] = row.item_id;
+    });
+    setBarcodeMap(barcodeObject);
+
+    setLoading(false);
+  }
+
   const filteredItems = items.filter((item) =>
     normalizeText(item.name).includes(normalizeText(itemSearch))
   );
 
-  const addItem = () => {
+  const addItem = async () => {
     const trimmed = newItem.trim();
     if (!trimmed) return;
 
-    const next = { id: Date.now(), name: trimmed };
-    setItems((prev) => [...prev, next]);
-    setNewItem("");
-    setSelectedItemId(String(next.id));
-    setItemSearch(next.name);
+    const { data, error } = await supabase
+      .from("items")
+      .insert([{ name: trimmed }])
+      .select("id, name")
+      .single();
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    if (data) {
+      const newData = data as Item;
+      setItems((prev) => [...prev, newData].sort((a, b) => a.name.localeCompare(b.name)));
+      setNewItem("");
+      setSelectedItemId(String(newData.id));
+      setItemSearch(newData.name);
+    }
   };
 
   const chooseItem = (id: number, name: string) => {
@@ -157,10 +161,28 @@ export default function ShopStockCountApp() {
     setItemSearch(name);
   };
 
-  const saveBarcodeMatch = () => {
+  const saveBarcodeMatch = async () => {
     if (!pendingBarcode || !selectedItemId) return;
 
     const itemId = Number(selectedItemId);
+
+    const { error } = await supabase
+      .from("barcode_mappings")
+      .upsert(
+        [
+          {
+            barcode: pendingBarcode,
+            item_id: itemId,
+          },
+        ],
+        { onConflict: "barcode" }
+      );
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
     setBarcodeMap((prev) => ({
       ...prev,
       [pendingBarcode]: itemId,
@@ -170,29 +192,44 @@ export default function ShopStockCountApp() {
     alert("Barcode match saved successfully.");
   };
 
-  const addEntry = () => {
+  const addEntry = async () => {
     const qty = Number(quantity);
 
     if (!selectedItemId || quantity === "" || qty < 0) return;
 
-    const found = items.find((item) => String(item.id) === selectedItemId);
-    if (!found) return;
+    const itemId = Number(selectedItemId);
 
-    setEntries((prev) => [
-      {
-        id: Date.now(),
-        itemId: found.id,
-        itemName: found.name,
-        location: selectedLocation,
-        quantity: qty,
-      },
-      ...prev,
-    ]);
+    const { data, error } = await supabase
+      .from("stock_entries")
+      .insert([
+        {
+          item_id: itemId,
+          location: selectedLocation,
+          quantity: qty,
+        },
+      ])
+      .select("id, item_id, location, quantity, created_at")
+      .single();
 
-    setQuantity("");
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    if (data) {
+      setEntries((prev) => [data as Entry, ...prev]);
+      setQuantity("");
+    }
   };
 
-  const removeEntry = (id: number) => {
+  const removeEntry = async (id: number) => {
+    const { error } = await supabase.from("stock_entries").delete().eq("id", id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
     setEntries((prev) => prev.filter((entry) => entry.id !== id));
   };
 
@@ -205,7 +242,7 @@ export default function ShopStockCountApp() {
     setEditingValue(String(currentValue));
   };
 
-  const saveEditedValue = (
+  const saveEditedValue = async (
     itemId: number,
     location: "outside" | "storeroom",
     value?: string
@@ -215,24 +252,46 @@ export default function ShopStockCountApp() {
 
     if (finalValue === "" || qty < 0) return;
 
-    const found = items.find((item) => item.id === itemId);
-    if (!found) return;
+    const matchingEntries = entries.filter(
+      (entry) => entry.item_id === itemId && entry.location === location
+    );
 
-    setEntries((prev) => {
-      const filtered = prev.filter(
-        (entry) => !(entry.itemId === itemId && entry.location === location)
-      );
+    if (matchingEntries.length > 0) {
+      const idsToDelete = matchingEntries.map((entry) => entry.id);
 
-      return [
+      const { error: deleteError } = await supabase
+        .from("stock_entries")
+        .delete()
+        .in("id", idsToDelete);
+
+      if (deleteError) {
+        alert(deleteError.message);
+        return;
+      }
+    }
+
+    const { data, error } = await supabase
+      .from("stock_entries")
+      .insert([
         {
-          id: Date.now(),
-          itemId: found.id,
-          itemName: found.name,
+          item_id: itemId,
           location,
           quantity: qty,
         },
-        ...filtered,
-      ];
+      ])
+      .select("id, item_id, location, quantity, created_at")
+      .single();
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setEntries((prev) => {
+      const filtered = prev.filter(
+        (entry) => !(entry.item_id === itemId && entry.location === location)
+      );
+      return [data as Entry, ...filtered];
     });
 
     setEditingCell(null);
@@ -250,11 +309,11 @@ export default function ShopStockCountApp() {
     return items
       .map((item) => {
         const outside = entries
-          .filter((entry) => entry.itemId === item.id && entry.location === "outside")
+          .filter((entry) => entry.item_id === item.id && entry.location === "outside")
           .reduce((sum, entry) => sum + entry.quantity, 0);
 
         const storeroom = entries
-          .filter((entry) => entry.itemId === item.id && entry.location === "storeroom")
+          .filter((entry) => entry.item_id === item.id && entry.location === "storeroom")
           .reduce((sum, entry) => sum + entry.quantity, 0);
 
         const total = outside + storeroom;
@@ -288,6 +347,14 @@ export default function ShopStockCountApp() {
     };
   }, [summary]);
 
+  const getItemName = (itemId: number) => {
+    return items.find((item) => item.id === itemId)?.name || "Unknown Item";
+  };
+
+  if (loading) {
+    return <div className="p-6">Loading items from Supabase...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
@@ -296,6 +363,7 @@ export default function ShopStockCountApp() {
           <p className="text-sm text-slate-600">
             Choose an item, enter quantity, pick the location, and the totals update automatically.
           </p>
+          {error ? <p className="text-sm text-red-600">Error: {error}</p> : null}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -369,7 +437,7 @@ export default function ShopStockCountApp() {
                 {pendingBarcode ? (
                   <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm">
                     <p className="font-medium text-amber-800">Unknown barcode detected</p>
-                    <p className="text-amber-700 break-all">{pendingBarcode}</p>
+                    <p className="break-all text-amber-700">{pendingBarcode}</p>
                     <p className="mt-1 text-amber-700">
                       Choose the correct item from the list below, then save the match.
                     </p>
@@ -419,7 +487,10 @@ export default function ShopStockCountApp() {
 
               <div className="space-y-2">
                 <Label>Location</Label>
-                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                <Select
+                  value={selectedLocation}
+                  onValueChange={(value) => setSelectedLocation(value as "outside" | "storeroom")}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select location" />
                   </SelectTrigger>
@@ -535,19 +606,10 @@ export default function ShopStockCountApp() {
                                   autoFocus
                                   className="h-8 w-20"
                                 />
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  onClick={() => saveEditedValue(item.id, "outside")}
-                                >
+                                <Button type="button" size="sm" onClick={() => saveEditedValue(item.id, "outside")}>
                                   Save
                                 </Button>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={cancelEditing}
-                                >
+                                <Button type="button" size="sm" variant="outline" onClick={cancelEditing}>
                                   Cancel
                                 </Button>
                               </div>
@@ -578,19 +640,10 @@ export default function ShopStockCountApp() {
                                   autoFocus
                                   className="h-8 w-20"
                                 />
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  onClick={() => saveEditedValue(item.id, "storeroom")}
-                                >
+                                <Button type="button" size="sm" onClick={() => saveEditedValue(item.id, "storeroom")}>
                                   Save
                                 </Button>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={cancelEditing}
-                                >
+                                <Button type="button" size="sm" variant="outline" onClick={cancelEditing}>
                                   Cancel
                                 </Button>
                               </div>
@@ -634,7 +687,7 @@ export default function ShopStockCountApp() {
                         className="flex flex-col gap-3 rounded-2xl border bg-white p-4 md:flex-row md:items-center md:justify-between"
                       >
                         <div>
-                          <p className="font-semibold">{entry.itemName}</p>
+                          <p className="font-semibold">{getItemName(entry.item_id)}</p>
                           <p className="text-sm text-slate-500">
                             {entry.location === "outside" ? "Outside Selling" : "Store Room"}
                           </p>
