@@ -122,6 +122,8 @@ export default function ShopStockCountApp() {
   const [itemSearch, setItemSearch] = useState("");
   const [showScanner, setShowScanner] = useState(false);
   const [lastScannedCode, setLastScannedCode] = useState("");
+  const [pendingBarcode, setPendingBarcode] = useState("");
+  const [barcodeMap, setBarcodeMap] = useState<Record<string, number>>({});
   const [entries, setEntries] = useState<
     { id: number; itemId: number; itemName: string; location: string; quantity: number }[]
   >([]);
@@ -153,6 +155,19 @@ export default function ShopStockCountApp() {
   const chooseItem = (id: number, name: string) => {
     setSelectedItemId(String(id));
     setItemSearch(name);
+  };
+
+  const saveBarcodeMatch = () => {
+    if (!pendingBarcode || !selectedItemId) return;
+
+    const itemId = Number(selectedItemId);
+    setBarcodeMap((prev) => ({
+      ...prev,
+      [pendingBarcode]: itemId,
+    }));
+
+    setPendingBarcode("");
+    alert("Barcode match saved successfully.");
   };
 
   const addEntry = () => {
@@ -329,11 +344,37 @@ export default function ShopStockCountApp() {
                     onDetected={(code) => {
                       setLastScannedCode(code);
                       setShowScanner(false);
-                      alert(`Scanned barcode: ${code}`);
+
+                      const matchedItemId = barcodeMap[code];
+
+                      if (matchedItemId) {
+                        const found = items.find((item) => item.id === matchedItemId);
+                        if (found) {
+                          setSelectedItemId(String(found.id));
+                          setItemSearch(found.name);
+                          setPendingBarcode("");
+                          alert(`Matched item: ${found.name}`);
+                        }
+                      } else {
+                        setPendingBarcode(code);
+                        setSelectedItemId("");
+                        setItemSearch("");
+                        alert("Barcode not found. Please choose an item, then tap Save Barcode Match.");
+                      }
                     }}
                     onClose={() => setShowScanner(false)}
                   />
                 )}
+
+                {pendingBarcode ? (
+                  <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm">
+                    <p className="font-medium text-amber-800">Unknown barcode detected</p>
+                    <p className="text-amber-700 break-all">{pendingBarcode}</p>
+                    <p className="mt-1 text-amber-700">
+                      Choose the correct item from the list below, then save the match.
+                    </p>
+                  </div>
+                ) : null}
 
                 <div className="max-h-48 overflow-y-auto rounded-md border bg-white">
                   {filteredItems.length > 0 ? (
@@ -353,6 +394,17 @@ export default function ShopStockCountApp() {
                     <div className="px-3 py-2 text-sm text-slate-500">No item found</div>
                   )}
                 </div>
+
+                {pendingBarcode ? (
+                  <Button
+                    type="button"
+                    className="w-full"
+                    onClick={saveBarcodeMatch}
+                    disabled={!selectedItemId}
+                  >
+                    Save Barcode Match
+                  </Button>
+                ) : null}
 
                 <p className="text-xs text-slate-500">
                   Selected: {selectedItem ? selectedItem.name : "None"}
