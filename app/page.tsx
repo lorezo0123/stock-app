@@ -23,7 +23,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Package, Store, Warehouse, Search } from "lucide-react";
-import BarcodeScanner from "@/components/ui/BarcodeScanner";
+import dynamic from "next/dynamic";
+
+const BarcodeScanner = dynamic(
+  () => import("@/components/ui/BarcodeScanner"),
+  { ssr: false }
+);
 
 type Item = {
   id: number;
