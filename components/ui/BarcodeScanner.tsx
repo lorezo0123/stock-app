@@ -22,18 +22,31 @@ export default function BarcodeScanner({
       try {
         if (typeof window === "undefined") return;
 
-        const { Html5Qrcode } = await import("html5-qrcode");
+        const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import("html5-qrcode");
 
         if (cancelled) return;
 
-        const scanner = new Html5Qrcode(elementIdRef.current);
+        const scanner = new Html5Qrcode(elementIdRef.current, {
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+          ],
+          verbose: false,
+        });
+
         scannerRef.current = scanner;
 
         await scanner.start(
-          { facingMode: "environment" },
+          { facingMode: { exact: "environment" } },
           {
             fps: 10,
-            qrbox: { width: 250, height: 120 },
+            qrbox: { width: 280, height: 180 },
+            aspectRatio: 1.777778,
           },
           async (decodedText: string) => {
             if (cancelled) return;
@@ -41,19 +54,65 @@ export default function BarcodeScanner({
             try {
               await scanner.stop();
             } catch {
-              // ignore stop errors
+              // ignore
             }
 
             onDetected(decodedText);
           },
           () => {
-            // ignore scan errors while scanning
+            // ignore scan misses
           }
         );
       } catch (err) {
         console.error(err);
-        if (!cancelled) {
-          setError("Camera error. Please allow permission.");
+
+        try {
+          const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import("html5-qrcode");
+
+          if (cancelled) return;
+
+          const scanner = new Html5Qrcode(elementIdRef.current, {
+            formatsToSupport: [
+              Html5QrcodeSupportedFormats.QR_CODE,
+              Html5QrcodeSupportedFormats.CODE_128,
+              Html5QrcodeSupportedFormats.CODE_39,
+              Html5QrcodeSupportedFormats.EAN_13,
+              Html5QrcodeSupportedFormats.EAN_8,
+              Html5QrcodeSupportedFormats.UPC_A,
+              Html5QrcodeSupportedFormats.UPC_E,
+            ],
+            verbose: false,
+          });
+
+          scannerRef.current = scanner;
+
+          await scanner.start(
+            { facingMode: "environment" },
+            {
+              fps: 10,
+              qrbox: { width: 280, height: 180 },
+              aspectRatio: 1.777778,
+            },
+            async (decodedText: string) => {
+              if (cancelled) return;
+
+              try {
+                await scanner.stop();
+              } catch {
+                // ignore
+              }
+
+              onDetected(decodedText);
+            },
+            () => {
+              // ignore scan misses
+            }
+          );
+        } catch (fallbackErr) {
+          console.error(fallbackErr);
+          if (!cancelled) {
+            setError("Scanner could not detect barcode. Please allow camera and try again.");
+          }
         }
       }
     }
@@ -62,15 +121,10 @@ export default function BarcodeScanner({
 
     return () => {
       cancelled = true;
-
       const scanner = scannerRef.current;
       if (scanner) {
-        scanner
-          .stop()
-          .catch(() => {})
-          .finally(() => {
-            scannerRef.current = null;
-          });
+        scanner.stop().catch(() => {});
+        scannerRef.current = null;
       }
     };
   }, [onDetected]);
@@ -91,7 +145,12 @@ export default function BarcodeScanner({
       {error ? (
         <p className="text-sm text-red-500">{error}</p>
       ) : (
-        <div id={elementIdRef.current} className="w-full" />
+        <>
+          <div id={elementIdRef.current} className="w-full" />
+          <p className="text-xs text-slate-500">
+            Hold the barcode steady, fill the box, and move slightly farther away if it does not scan.
+          </p>
+        </>
       )}
     </div>
   );
