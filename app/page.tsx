@@ -188,12 +188,21 @@ export default function ShopStockCountApp() {
       return;
     }
 
+    const found = items.find((item) => item.id === itemId);
+
     setBarcodeMap((prev) => ({
       ...prev,
       [pendingBarcode]: itemId,
     }));
 
+    setLastScannedCode(pendingBarcode);
     setPendingBarcode("");
+
+    if (found) {
+      setSelectedItemId(String(found.id));
+      setItemSearch(found.name);
+    }
+
     alert("Barcode match saved successfully.");
   };
 
@@ -430,36 +439,38 @@ export default function ShopStockCountApp() {
                 {showScanner && (
                   <BarcodeScanner
                     onDetected={(code) => {
-                      setLastScannedCode(code);
+                      const cleanCode = code.trim();
+
+                      setLastScannedCode(cleanCode);
                       setShowScanner(false);
 
-                      const matchedItemId = barcodeMap[code];
+                      const matchedItemId = barcodeMap[cleanCode];
 
                       if (matchedItemId) {
                         const found = items.find((item) => item.id === matchedItemId);
+
                         if (found) {
                           setSelectedItemId(String(found.id));
                           setItemSearch(found.name);
                           setPendingBarcode("");
-                          alert(`Matched item: ${found.name}`);
+                          return;
                         }
-                      } else {
-                        setPendingBarcode(code);
-                        setSelectedItemId("");
-                        setItemSearch("");
-                        alert("Barcode not found. Please choose an item, then tap Save Barcode Match.");
                       }
+
+                      setPendingBarcode(cleanCode);
+                      setSelectedItemId("");
+                      setItemSearch("");
                     }}
                     onClose={() => setShowScanner(false)}
                   />
                 )}
 
                 {pendingBarcode ? (
-                  <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm">
-                    <p className="font-medium text-amber-800">Unknown barcode detected</p>
+                  <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm space-y-1">
+                    <p className="font-medium text-amber-800">Barcode not found</p>
                     <p className="break-all text-amber-700">{pendingBarcode}</p>
-                    <p className="mt-1 text-amber-700">
-                      Choose the correct item from the list below, then save the match.
+                    <p className="text-amber-700">
+                      Choose an existing item below, or add a new item, then tap <strong>Save Barcode Match</strong>.
                     </p>
                   </div>
                 ) : null}
