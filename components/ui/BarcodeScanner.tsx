@@ -18,107 +18,48 @@ export default function BarcodeScanner({
   useEffect(() => {
     let cancelled = false;
 
-    const handleDetected = async (decodedText: string, scanner: any) => {
-      if (cancelled) return;
-
-      const cleanCode = decodedText.trim();
-
-      try {
-        await scanner.stop();
-      } catch {
-        // ignore
-      }
-
-      if (
-        cleanCode.startsWith("http://") ||
-        cleanCode.startsWith("https://") ||
-        cleanCode.startsWith("www.")
-      ) {
-        setError("This is a website QR code, not a product barcode.");
-        return;
-      }
-
-      if (!/^[A-Za-z0-9\-./]+$/.test(cleanCode)) {
-        setError("Invalid barcode format.");
-        return;
-      }
-
-      onDetected(cleanCode);
-    };
-
     async function startScanner() {
       try {
-        if (typeof window === "undefined") return;
-
-        const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import("html5-qrcode");
+        const { Html5Qrcode } = await import("html5-qrcode");
 
         if (cancelled) return;
 
-        const scanner = new Html5Qrcode(elementIdRef.current, {
-          formatsToSupport: [
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E,
-          ],
-          verbose: false,
-        });
-
+        const scanner = new Html5Qrcode(elementIdRef.current);
         scannerRef.current = scanner;
 
         await scanner.start(
-          { facingMode: { exact: "environment" } },
+          { facingMode: "environment" },
           {
             fps: 10,
             qrbox: { width: 280, height: 180 },
-            aspectRatio: 1.777778,
           },
           async (decodedText: string) => {
-            await handleDetected(decodedText, scanner);
+            if (cancelled) return;
+
+            const clean = decodedText.trim();
+
+            // ❌ BLOCK ANY URL COMPLETELY
+            if (clean.includes("http") || clean.includes("www")) {
+              return;
+            }
+
+            // ✅ ONLY allow numeric / barcode style
+            if (!/^[0-9A-Za-z\-]+$/.test(clean)) {
+              return;
+            }
+
+            try {
+              await scanner.stop();
+            } catch {}
+
+            onDetected(clean);
           },
           () => {}
         );
       } catch (err) {
         console.error(err);
-
-        try {
-          const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import("html5-qrcode");
-
-          if (cancelled) return;
-
-          const scanner = new Html5Qrcode(elementIdRef.current, {
-            formatsToSupport: [
-              Html5QrcodeSupportedFormats.CODE_128,
-              Html5QrcodeSupportedFormats.CODE_39,
-              Html5QrcodeSupportedFormats.EAN_13,
-              Html5QrcodeSupportedFormats.EAN_8,
-              Html5QrcodeSupportedFormats.UPC_A,
-              Html5QrcodeSupportedFormats.UPC_E,
-            ],
-            verbose: false,
-          });
-
-          scannerRef.current = scanner;
-
-          await scanner.start(
-            { facingMode: "environment" },
-            {
-              fps: 10,
-              qrbox: { width: 280, height: 180 },
-              aspectRatio: 1.777778,
-            },
-            async (decodedText: string) => {
-              await handleDetected(decodedText, scanner);
-            },
-            () => {}
-          );
-        } catch (fallbackErr) {
-          console.error(fallbackErr);
-          if (!cancelled) {
-            setError("Scanner could not detect barcode. Please allow camera and try again.");
-          }
+        if (!cancelled) {
+          setError("Camera error. Please allow permission.");
         }
       }
     }
@@ -154,7 +95,7 @@ export default function BarcodeScanner({
         <>
           <div id={elementIdRef.current} className="w-full" />
           <p className="text-xs text-slate-500">
-            Hold the barcode steady and fill the box.
+            Scan product barcode only (not QR code)
           </p>
         </>
       )}
