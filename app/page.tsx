@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Package, Store, Warehouse, Search, ScanLine, Link2Off } from "lucide-react";
+import { Trash2, Package, Store, Warehouse, Search, ScanLine, Link2Off, RotateCcw } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const BarcodeScanner = dynamic(
@@ -316,6 +316,33 @@ export default function ShopStockCountApp() {
     setEntries((prev) => prev.filter((entry) => entry.id !== id));
   };
 
+  const resetAllCounts = async () => {
+    const confirmReset = confirm(
+      "Are you sure you want to reset ALL counting? This will delete all saved count entries."
+    );
+    if (!confirmReset) return;
+
+    setSaving(true);
+
+    const { error } = await supabase
+      .from("stock_entries")
+      .delete()
+      .gte("id", 0);
+
+    setSaving(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setEntries([]);
+    setEditingCell(null);
+    setEditingValue("");
+
+    alert("All counting has been reset.");
+  };
+
   const startEditing = (
     itemId: number,
     location: "outside" | "storeroom",
@@ -599,6 +626,17 @@ export default function ShopStockCountApp() {
 
               <Button className="w-full" onClick={() => addEntry()} disabled={saving}>
                 {saving ? "Saving..." : "Save Count"}
+              </Button>
+
+              <Button
+                type="button"
+                variant="destructive"
+                className="w-full flex items-center gap-2"
+                onClick={resetAllCounts}
+                disabled={saving}
+              >
+                <RotateCcw className="h-4 w-4" />
+                Reset All Counting
               </Button>
             </CardContent>
           </Card>
