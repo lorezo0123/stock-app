@@ -29,7 +29,6 @@ export default function BarcodeScanner({
         // ignore
       }
 
-      // Block QR links / website URLs
       if (
         cleanCode.startsWith("http://") ||
         cleanCode.startsWith("https://") ||
@@ -39,8 +38,6 @@ export default function BarcodeScanner({
         return;
       }
 
-      // Optional: only allow letters, numbers, dash, slash, dot
-      // This blocks strange text payloads
       if (!/^[A-Za-z0-9\-./]+$/.test(cleanCode)) {
         setError("Invalid barcode format.");
         return;
@@ -59,7 +56,6 @@ export default function BarcodeScanner({
 
         const scanner = new Html5Qrcode(elementIdRef.current, {
           formatsToSupport: [
-            Html5QrcodeSupportedFormats.QR_CODE,
             Html5QrcodeSupportedFormats.CODE_128,
             Html5QrcodeSupportedFormats.CODE_39,
             Html5QrcodeSupportedFormats.EAN_13,
@@ -82,9 +78,7 @@ export default function BarcodeScanner({
           async (decodedText: string) => {
             await handleDetected(decodedText, scanner);
           },
-          () => {
-            // ignore scan misses
-          }
+          () => {}
         );
       } catch (err) {
         console.error(err);
@@ -96,7 +90,6 @@ export default function BarcodeScanner({
 
           const scanner = new Html5Qrcode(elementIdRef.current, {
             formatsToSupport: [
-              Html5QrcodeSupportedFormats.QR_CODE,
               Html5QrcodeSupportedFormats.CODE_128,
               Html5QrcodeSupportedFormats.CODE_39,
               Html5QrcodeSupportedFormats.EAN_13,
@@ -119,9 +112,7 @@ export default function BarcodeScanner({
             async (decodedText: string) => {
               await handleDetected(decodedText, scanner);
             },
-            () => {
-              // ignore scan misses
-            }
+            () => {}
           );
         } catch (fallbackErr) {
           console.error(fallbackErr);
@@ -163,7 +154,7 @@ export default function BarcodeScanner({
         <>
           <div id={elementIdRef.current} className="w-full" />
           <p className="text-xs text-slate-500">
-            Hold the barcode steady, fill the box, and move slightly farther away if it does not scan.
+            Hold the barcode steady and fill the box.
           </p>
         </>
       )}

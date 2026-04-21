@@ -203,12 +203,19 @@ export default function ShopStockCountApp() {
     if (!selectedItemId || quantity === "" || qty < 0) return;
 
     const itemId = Number(selectedItemId);
+    const item = items.find((i) => i.id === itemId);
+
+    if (!item) {
+      alert("Item not found.");
+      return;
+    }
 
     const { data, error } = await supabase
       .from("stock_entries")
       .insert([
         {
           item_id: itemId,
+          item_name: item.name,
           location: selectedLocation,
           quantity: qty,
         },
@@ -257,6 +264,13 @@ export default function ShopStockCountApp() {
 
     if (finalValue === "" || qty < 0) return;
 
+    const item = items.find((i) => i.id === itemId);
+
+    if (!item) {
+      alert("Item not found.");
+      return;
+    }
+
     const matchingEntries = entries.filter(
       (entry) => entry.item_id === itemId && entry.location === location
     );
@@ -280,6 +294,7 @@ export default function ShopStockCountApp() {
       .insert([
         {
           item_id: itemId,
+          item_name: item.name,
           location,
           quantity: qty,
         },
