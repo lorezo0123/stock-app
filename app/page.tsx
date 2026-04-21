@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Package, Store, Warehouse, Search } from "lucide-react";
+import { Trash2, Package, Store, Warehouse, Search, ScanLine, Link2Off } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const BarcodeScanner = dynamic(
@@ -62,7 +62,7 @@ export default function ShopStockCountApp() {
   const [newItem, setNewItem] = useState("");
   const [selectedItemId, setSelectedItemId] = useState("");
   const [selectedLocation, setSelectedLocation] = useState<"outside" | "storeroom">("outside");
-  const [quantity, setQuantity] = useState("");
+  const [quantity, setQuantity] = useState("1");
   const [search, setSearch] = useState("");
   const [itemSearch, setItemSearch] = useState("");
   const [showScanner, setShowScanner] = useState(false);
@@ -71,6 +71,7 @@ export default function ShopStockCountApp() {
   const [barcodeMap, setBarcodeMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const [editingCell, setEditingCell] = useState<{
     itemId: number;
@@ -137,6 +138,10 @@ export default function ShopStockCountApp() {
     normalizeText(item.name).includes(normalizeText(itemSearch))
   );
 
+  const getItemName = (itemId: number) => {
+    return items.find((item) => item.id === itemId)?.name || "Unknown Item";
+  };
+
   const addItem = async () => {
     const trimmed = newItem.trim();
     if (!trimmed) return;
@@ -174,12 +179,7 @@ export default function ShopStockCountApp() {
     const { error } = await supabase
       .from("barcode_mappings")
       .upsert(
-        [
-          {
-            barcode: pendingBarcode,
-            item_id: itemId,
-          },
-        ],
+        [{ barcode: pendingBarcode, item_id: itemId }],
         { onConflict: "barcode" }
       );
 
@@ -206,24 +206,56 @@ export default function ShopStockCountApp() {
     alert("Barcode match saved successfully.");
   };
 
-  const addEntry = async () => {
+  const deleteBarcodeMatch = async () => {
+    if (!lastScannedCode) return;
+
+    const confirmDelete = confirm("Are you sure you want to delete this barcode mapping?");
+    if (!confirmDelete) return;
+
+    const { error } = await supabase
+      .from("barcode_mappings")
+      .delete()
+      .eq("barcode", lastScannedCode);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setBarcodeMap((prev) => {
+      const updated = { ...prev };
+      delete updated[lastScannedCode];
+      return updated;
+    });
+
+    setLastScannedCode("");
+    setPendingBarcode("");
+    setSelectedItemId("");
+    setItemSearch("");
+
+    alert("Barcode deleted successfully.");
+  };
+
+  const addEntry = async (overrideItemId?: number) => {
     const qty = Number(quantity);
+    const finalItemId = overrideItemId ?? Number(selectedItemId);
 
-    if (!selectedItemId || quantity === "" || qty < 0) return;
+    if (!finalItemId || quantity === "" || qty < 0) return;
 
-    const itemId = Number(selectedItemId);
-    const item = items.find((i) => i.id === itemId);
+    const item = items.find((i) => i.id === finalItemId);
 
     if (!item) {
       alert("Item not found.");
       return;
     }
 
+    setSaving(true);
+
     const { data, error } = await supabase
       .from("stock_entries")
       .insert([
         {
-          item_id: itemId,
+          item_id: finalItemId,
           item_name: item.name,
           location: selectedLocation,
           quantity: qty,
@@ -232,6 +264,8 @@ export default function ShopStockCountApp() {
       .select("id, item_id, location, quantity, created_at")
       .single();
 
+    setSaving(false);
+
     if (error) {
       alert(error.message);
       return;
@@ -239,8 +273,36 @@ export default function ShopStockCountApp() {
 
     if (data) {
       setEntries((prev) => [data as Entry, ...prev]);
-      setQuantity("");
+      setSelectedItemId(String(finalItemId));
+      setItemSearch(item.name);
+      setQuantity("1");
     }
+  };
+
+  const handleDetectedBarcode = async (rawCode: string) => {
+    const cleanCode = rawCode.trim();
+
+    setLastScannedCode(cleanCode);
+    setShowScanner(false);
+
+    const matchedItemId = barcodeMap[cleanCode];
+
+    if (matchedItemId) {
+      const found = items.find((item) => item.id === matchedItemId);
+
+      if (found) {
+        setSelectedItemId(String(found.id));
+        setItemSearch(found.name);
+        setPendingBarcode("");
+
+        await addEntry(found.id);
+        return;
+      }
+    }
+
+    setPendingBarcode(cleanCode);
+    setSelectedItemId("");
+    setItemSearch("");
   };
 
   const removeEntry = async (id: number) => {
@@ -376,10 +438,6 @@ export default function ShopStockCountApp() {
     };
   }, [summary]);
 
-  const getItemName = (itemId: number) => {
-    return items.find((item) => item.id === itemId)?.name || "Unknown Item";
-  };
-
   if (loading) {
     return <div className="p-6">Loading items from Supabase...</div>;
   }
@@ -390,7 +448,7 @@ export default function ShopStockCountApp() {
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">Shop Stock Count</h1>
           <p className="text-sm text-slate-600">
-            Choose an item, enter quantity, pick the location, and the totals update automatically.
+            Scan a barcode to auto save, or choose an item manually and save count.
           </p>
           {error ? <p className="text-sm text-red-600">Error: {error}</p> : null}
         </div>
@@ -430,37 +488,16 @@ export default function ShopStockCountApp() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="w-full flex items-center gap-2"
                   onClick={() => setShowScanner(true)}
                 >
+                  <ScanLine className="h-4 w-4" />
                   Scan Barcode
                 </Button>
 
                 {showScanner && (
                   <BarcodeScanner
-                    onDetected={(code) => {
-                      const cleanCode = code.trim();
-
-                      setLastScannedCode(cleanCode);
-                      setShowScanner(false);
-
-                      const matchedItemId = barcodeMap[cleanCode];
-
-                      if (matchedItemId) {
-                        const found = items.find((item) => item.id === matchedItemId);
-
-                        if (found) {
-                          setSelectedItemId(String(found.id));
-                          setItemSearch(found.name);
-                          setPendingBarcode("");
-                          return;
-                        }
-                      }
-
-                      setPendingBarcode(cleanCode);
-                      setSelectedItemId("");
-                      setItemSearch("");
-                    }}
+                    onDetected={handleDetectedBarcode}
                     onClose={() => setShowScanner(false)}
                   />
                 )}
@@ -472,6 +509,23 @@ export default function ShopStockCountApp() {
                     <p className="text-amber-700">
                       Choose an existing item below, or add a new item, then tap <strong>Save Barcode Match</strong>.
                     </p>
+                  </div>
+                ) : null}
+
+                {lastScannedCode ? (
+                  <div className="rounded-md border bg-slate-50 p-3 space-y-2">
+                    <p className="text-xs text-slate-500 break-all">
+                      Last scanned barcode: {lastScannedCode}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="w-full flex items-center gap-2"
+                      onClick={deleteBarcodeMatch}
+                    >
+                      <Link2Off className="h-4 w-4" />
+                      Delete Barcode Mapping
+                    </Button>
                   </div>
                 ) : null}
 
@@ -508,12 +562,6 @@ export default function ShopStockCountApp() {
                 <p className="text-xs text-slate-500">
                   Selected: {selectedItem ? selectedItem.name : "None"}
                 </p>
-
-                {lastScannedCode ? (
-                  <p className="text-xs text-slate-500">
-                    Last scanned barcode: {lastScannedCode}
-                  </p>
-                ) : null}
               </div>
 
               <div className="space-y-2">
@@ -544,10 +592,13 @@ export default function ShopStockCountApp() {
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="Enter quantity"
                 />
+                <p className="text-xs text-slate-500">
+                  For auto save after scan, this quantity will be used.
+                </p>
               </div>
 
-              <Button className="w-full" onClick={addEntry}>
-                Save Count
+              <Button className="w-full" onClick={() => addEntry()} disabled={saving}>
+                {saving ? "Saving..." : "Save Count"}
               </Button>
             </CardContent>
           </Card>
@@ -611,8 +662,8 @@ export default function ShopStockCountApp() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Item</TableHead>
-                        <TableHead>Outside Selling (click to edit)</TableHead>
-                        <TableHead>Store Room (click to edit)</TableHead>
+                        <TableHead>Outside Selling</TableHead>
+                        <TableHead>Store Room</TableHead>
                         <TableHead>Total</TableHead>
                       </TableRow>
                     </TableHeader>
